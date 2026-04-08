@@ -13,10 +13,12 @@ export function TrackingResult({ data, products }: { data: TrackingData; product
 
   return (
     <div style={{ maxWidth: 1200, margin: "0 auto", width: "100%" }}>
-      <TrackingProgress milestones={info.milestone} currentStatus={status} />
+      <div style={{ marginTop: 40, marginBottom: 40 }}>
+        <TrackingProgress milestones={info.milestone} currentStatus={status} />
+      </div>
 
       <div style={{ minHeight: 100, display: "flex", flexDirection: "column" }}>
-        <div style={{ marginBottom: 20, width: "100%", overflow: "hidden" }}>
+        <div className="tracking-content" style={{ marginBottom: 20, width: "100%", overflow: "hidden" }}>
           <TrackingTimeline events={events} statusLabel={status} />
           <TrackingSidebar
             trackingNumber={data.number}

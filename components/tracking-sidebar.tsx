@@ -25,7 +25,7 @@ export function TrackingSidebar({
   };
 
   return (
-    <div style={{ float: "right", width: "30%" }}>
+    <div className="tracking-sidebar" style={{ float: "right", width: "30%" }}>
       <ul style={{ marginBlockEnd: 0, display: "flex", flexDirection: "column", padding: "0 20px", listStyle: "none", marginBlockStart: 0, paddingInlineStart: 0 }}>
         {/* Tracking Number */}
         <li style={{ marginBottom: 20, width: "100%", marginTop: 20 }}>

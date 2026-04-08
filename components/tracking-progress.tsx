@@ -96,8 +96,8 @@ export function TrackingProgress({ milestones, currentStatus }: { milestones: Mi
   }
 
   return (
-    <div style={{ width: "100%", marginBottom: 20 }}>
-      <div style={{ display: "flex", flexDirection: "row", alignItems: "flex-start", justifyContent: "space-between", margin: "20px auto", width: "100%" }}>
+    <div className="tracking-progress" style={{ width: "100%", marginBottom: 20 }}>
+      <div className="tracking-progress-inner" style={{ display: "flex", flexDirection: "row", alignItems: "flex-start", justifyContent: "space-between", margin: "20px auto", width: "100%" }}>
         {stages.map((stage, idx) => {
           const isLast = idx === stages.length - 1;
           const m = milestoneMap.get(stage);
@@ -109,13 +109,13 @@ export function TrackingProgress({ milestones, currentStatus }: { milestones: Mi
 
           return (
             <div key={stage} style={{ display: "flex", alignItems: "flex-start", flex: isLast ? "0 0 auto" : 1 }}>
-              <div style={{ display: "flex", flexDirection: "column", alignItems: "center", minWidth: 100, maxWidth: 160 }}>
+              <div className="tracking-progress-node" style={{ display: "flex", flexDirection: "column", alignItems: "center", minWidth: 100, maxWidth: 160 }}>
                 <ProgressIcon stage={stage} color={color} />
-                <span style={{ fontSize: 14, fontWeight: 550, lineHeight: 1.25, color, marginTop: 4, textAlign: "center", whiteSpace: "nowrap" }}>
+                <span className="tracking-progress-label" style={{ fontSize: 14, fontWeight: 550, lineHeight: 1.25, color, marginTop: 4, textAlign: "center", whiteSpace: "nowrap" }}>
                   {STAGE_LABELS[stage] || STATUS_MAP[stage] || stage}
                 </span>
                 {m?.time_iso && (
-                  <span style={{ fontSize: 13, marginTop: 4, color: "#707070", textAlign: "center", maxWidth: 130, display: "block", lineHeight: 1.4 }}>
+                  <span className="tracking-progress-date" style={{ fontSize: 13, marginTop: 4, color: "#707070", textAlign: "center", maxWidth: 130, display: "block", lineHeight: 1.4 }}>
                     {formatDate(m.time_iso)}
                   </span>
                 )}
