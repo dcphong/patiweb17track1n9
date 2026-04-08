@@ -6,6 +6,7 @@ import { Ticker } from "@/components/ticker";
 import { Header } from "@/components/header";
 import { TrackingForm } from "@/components/tracking-form";
 import { TrackingResult } from "@/components/tracking-result";
+import { Footer } from "@/components/footer";
 import type { TrackingData, ProductInfo } from "@/lib/types";
 
 export default function Home() {
@@ -83,6 +84,8 @@ function HomeContent() {
 
         {trackingData && !loading && <TrackingResult data={trackingData} products={products} />}
       </main>
+
+      <Footer />
     </div>
   );
 }
