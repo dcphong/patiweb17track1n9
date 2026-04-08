@@ -1,17 +1,22 @@
 "use client";
 
-import { useState } from "react";
-import type { TrackingData } from "@/lib/types";
+import { useState, useEffect } from "react";
+import type { TrackingData, ProductInfo } from "@/lib/types";
 
 interface TrackingFormProps {
   onResult: (data: TrackingData) => void;
+  onProducts?: (products: ProductInfo[]) => void;
   onLoading: (loading: boolean) => void;
   onError: (error: string | null) => void;
   initialValue?: string;
 }
 
-export function TrackingForm({ onResult, onLoading, onError, initialValue = "" }: TrackingFormProps) {
+export function TrackingForm({ onResult, onProducts, onLoading, onError, initialValue = "" }: TrackingFormProps) {
   const [trackingNumber, setTrackingNumber] = useState(initialValue);
+
+  useEffect(() => {
+    if (initialValue) setTrackingNumber(initialValue);
+  }, [initialValue]);
 
   const handleTrack = async () => {
     const value = trackingNumber.trim();
@@ -33,6 +38,7 @@ export function TrackingForm({ onResult, onLoading, onError, initialValue = "" }
       }
 
       onResult(json.data);
+      onProducts?.(json.products || []);
     } catch {
       onError("An error occurred. Please try again later.");
     } finally {
@@ -52,29 +58,16 @@ export function TrackingForm({ onResult, onLoading, onError, initialValue = "" }
           onChange={(e) => setTrackingNumber(e.target.value)}
           onKeyDown={(e) => e.key === "Enter" && handleTrack()}
           style={{
-            flex: 1,
-            padding: "10px 14px",
-            borderRadius: 4,
-            border: "1px solid #ccc",
-            fontSize: 14,
-            lineHeight: "20px",
-            outline: "none",
-            boxSizing: "border-box",
+            flex: 1, padding: "10px 14px", borderRadius: 4, border: "1px solid #ccc",
+            fontSize: 14, lineHeight: "20px", outline: "none", boxSizing: "border-box",
           }}
         />
         <button
           onClick={handleTrack}
           style={{
-            backgroundColor: "#007a5c",
-            color: "#fff",
-            border: "none",
-            borderRadius: 4,
-            padding: "10px 28px",
-            fontSize: 14,
-            fontWeight: 600,
-            cursor: "pointer",
-            lineHeight: "20px",
-            whiteSpace: "nowrap",
+            backgroundColor: "#007a5c", color: "#fff", border: "none", borderRadius: 4,
+            padding: "10px 28px", fontSize: 14, fontWeight: 600, cursor: "pointer",
+            lineHeight: "20px", whiteSpace: "nowrap",
           }}
         >
           Track

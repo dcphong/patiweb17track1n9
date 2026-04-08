@@ -85,14 +85,24 @@ export function TrackingProgress({ milestones, currentStatus }: { milestones: Mi
     stages = [...stages, "Exception"];
   }
 
+  // Find the highest reached stage index — all stages before it are also reached
+  let highestReachedIdx = -1;
+  for (let i = stages.length - 1; i >= 0; i--) {
+    const m = milestoneMap.get(stages[i]);
+    if (m?.time_iso || (stages[i] === "Exception" && isException)) {
+      highestReachedIdx = i;
+      break;
+    }
+  }
+
   return (
     <div style={{ width: "100%", marginBottom: 20 }}>
       <div style={{ display: "flex", flexDirection: "row", alignItems: "flex-start", justifyContent: "space-between", margin: "20px auto", width: "100%" }}>
         {stages.map((stage, idx) => {
           const isLast = idx === stages.length - 1;
           const m = milestoneMap.get(stage);
-          const reached = !!(m?.time_iso) || (stage === "Exception" && isException);
-          const nextReached = !isLast && !!(milestoneMap.get(stages[idx + 1])?.time_iso);
+          const reached = idx <= highestReachedIdx;
+          const nextReached = !isLast && (idx + 1) <= highestReachedIdx;
           const color = reached
             ? (stage === "Exception" ? "#e53935" : "#008000")
             : "#CDCDCD";

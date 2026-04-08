@@ -1,15 +1,20 @@
 "use client";
 
 import { useState } from "react";
+import type { ProductInfo } from "@/lib/types";
+
+/* eslint-disable @next/next/no-img-element */
 
 export function TrackingSidebar({
   trackingNumber,
   carrierName,
   carrierHomepage,
+  products,
 }: {
   trackingNumber: string;
   carrierName: string;
   carrierHomepage: string;
+  products: ProductInfo[];
 }) {
   const [copied, setCopied] = useState(false);
 
@@ -56,6 +61,51 @@ export function TrackingSidebar({
                   {carrierName}
                 </a>
               ) : carrierName}
+            </div>
+          </li>
+        )}
+
+        {/* Products */}
+        {products.length > 0 && (
+          <li style={{ marginBottom: 20, width: "100%" }}>
+            <div style={{ fontSize: 14, color: "#303030", marginBottom: 10, fontWeight: "bold" }}>
+              Product
+            </div>
+            <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>
+              {products.map((product, idx) => (
+                <div key={idx} style={{ position: "relative", overflow: "visible", display: "flex", gap: 10 }}>
+                  {product.image ? (
+                    <div style={{ position: "relative", width: 60, minWidth: 60, maxHeight: 75 }}>
+                      <img
+                        src={product.image}
+                        alt={product.title}
+                        style={{ maxHeight: 75, width: "100%", objectFit: "cover", borderRadius: 4 }}
+                      />
+                      {product.quantity > 0 && (
+                        <span style={{
+                          display: "inline-block", position: "absolute", top: -6, right: -6,
+                          padding: "2px 5px", backgroundColor: "#808080", color: "#fff",
+                          borderRadius: "50%", fontSize: 11, lineHeight: "14px", zIndex: 10,
+                          minWidth: 14, textAlign: "center",
+                        }}>
+                          {product.quantity}
+                        </span>
+                      )}
+                    </div>
+                  ) : (
+                    product.quantity > 0 && (
+                      <div style={{ width: 60, minWidth: 60, height: 60, background: "#f0f0f0", borderRadius: 4, display: "flex", alignItems: "center", justifyContent: "center", color: "#999", fontSize: 12 }}>
+                        x{product.quantity}
+                      </div>
+                    )
+                  )}
+                  <div style={{ flex: 1, minWidth: 0 }}>
+                    <span style={{ overflow: "hidden", display: "-webkit-box", WebkitBoxOrient: "vertical", WebkitLineClamp: 3, lineHeight: "24px", color: "#303030" }}>
+                      {product.title}
+                    </span>
+                  </div>
+                </div>
+              ))}
             </div>
           </li>
         )}

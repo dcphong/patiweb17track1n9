@@ -1,11 +1,11 @@
 "use client";
 
-import type { TrackingData } from "@/lib/types";
+import type { TrackingData, ProductInfo } from "@/lib/types";
 import { TrackingProgress } from "./tracking-progress";
 import { TrackingTimeline } from "./tracking-timeline";
 import { TrackingSidebar } from "./tracking-sidebar";
 
-export function TrackingResult({ data }: { data: TrackingData }) {
+export function TrackingResult({ data, products }: { data: TrackingData; products?: ProductInfo[] }) {
   const info = data.track_info;
   const status = info.latest_status.status;
   const events = info.tracking.providers?.[0]?.events || [];
@@ -22,6 +22,7 @@ export function TrackingResult({ data }: { data: TrackingData }) {
             trackingNumber={data.number}
             carrierName={carrier?.name || ""}
             carrierHomepage={carrier?.homepage || ""}
+            products={products || []}
           />
         </div>
       </div>

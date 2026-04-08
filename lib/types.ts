@@ -79,6 +79,12 @@ export const STATUS_MAP: Record<string, string> = {
   Alert: 'Alert',
 }
 
+export interface ProductInfo {
+  title: string
+  image: string
+  quantity: number
+}
+
 // Milestone key_stage mapping
 export const MILESTONE_MAP: Record<string, { label: string; icon: string }> = {
   InfoReceived: { label: 'Info Received', icon: '/icons/blank.svg' },

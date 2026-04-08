@@ -6,16 +6,17 @@ import { Ticker } from "@/components/ticker";
 import { Header } from "@/components/header";
 import { TrackingForm } from "@/components/tracking-form";
 import { TrackingResult } from "@/components/tracking-result";
-import type { TrackingData } from "@/lib/types";
+import type { TrackingData, ProductInfo } from "@/lib/types";
 
 export default function Home() {
   const searchParams = useSearchParams();
   const [trackingData, setTrackingData] = useState<TrackingData | null>(null);
+  const [products, setProducts] = useState<ProductInfo[]>([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [initialValue, setInitialValue] = useState("");
 
-  const autoTrack = useCallback(async (trackingNumber: string) => {
+  const doTrack = useCallback(async (trackingNumber: string) => {
     setLoading(true);
     setError(null);
     try {
@@ -30,6 +31,7 @@ export default function Home() {
         return;
       }
       setTrackingData(json.data);
+      setProducts(json.products || []);
     } catch {
       setError("An error occurred. Please try again later.");
     } finally {
@@ -41,9 +43,9 @@ export default function Home() {
     const tn = searchParams.get("tracking_number") || searchParams.get("nums") || "";
     if (tn.trim()) {
       setInitialValue(tn.trim());
-      autoTrack(tn.trim());
+      doTrack(tn.trim());
     }
-  }, [searchParams, autoTrack]);
+  }, [searchParams, doTrack]);
 
   return (
     <div className="flex flex-col flex-1 bg-white">
@@ -58,6 +60,7 @@ export default function Home() {
         <TrackingForm
           initialValue={initialValue}
           onResult={(data) => { setTrackingData(data); setError(null); }}
+          onProducts={setProducts}
           onLoading={setLoading}
           onError={setError}
         />
@@ -70,7 +73,7 @@ export default function Home() {
           <div style={{ marginTop: 40, color: "red", fontSize: 14, fontWeight: 500 }}>{error}</div>
         )}
 
-        {trackingData && !loading && <TrackingResult data={trackingData} />}
+        {trackingData && !loading && <TrackingResult data={trackingData} products={products} />}
       </main>
     </div>
   );
