@@ -2,7 +2,6 @@
 
 import { useState } from "react";
 import type { ProductInfo } from "@/lib/types";
-
 /* eslint-disable @next/next/no-img-element */
 
 export function TrackingSidebar({
@@ -109,6 +108,7 @@ export function TrackingSidebar({
             </div>
           </li>
         )}
+
       </ul>
     </div>
   );

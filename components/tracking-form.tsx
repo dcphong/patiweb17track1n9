@@ -11,7 +11,13 @@ interface TrackingFormProps {
   initialValue?: string;
 }
 
-export function TrackingForm({ onResult, onProducts, onLoading, onError, initialValue = "" }: TrackingFormProps) {
+export function TrackingForm({
+  onResult,
+  onProducts,
+  onLoading,
+  onError,
+  initialValue = ""
+}: TrackingFormProps) {
   const [trackingNumber, setTrackingNumber] = useState(initialValue);
 
   useEffect(() => {
@@ -21,6 +27,12 @@ export function TrackingForm({ onResult, onProducts, onLoading, onError, initial
   const handleTrack = async () => {
     const value = trackingNumber.trim();
     if (!value) return;
+
+    // Update URL so back button preserves state
+    const url = new URL(window.location.href);
+    url.searchParams.set("tracking_number", value);
+    window.history.replaceState({}, "", url.toString());
+
     onLoading(true);
     onError(null);
 
@@ -28,12 +40,14 @@ export function TrackingForm({ onResult, onProducts, onLoading, onError, initial
       const res = await fetch("/api/track", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ tracking_number: value }),
+        body: JSON.stringify({ tracking_number: value })
       });
       const json = await res.json();
 
       if (!res.ok) {
-        onError(json.error || "Could not find tracking info. Please check your input.");
+        onError(
+          json.error || "Could not find tracking info. Please check your input."
+        );
         return;
       }
 
@@ -47,27 +61,57 @@ export function TrackingForm({ onResult, onProducts, onLoading, onError, initial
   };
 
   return (
-    <div style={{ maxWidth: 500, width: "100%", margin: "0 auto", padding: "0 20px", boxSizing: "border-box" }}>
-      <label style={{ display: "block", fontSize: 14, fontWeight: 600, marginBottom: 8, color: "#000" }}>
+    <div
+      style={{
+        maxWidth: 500,
+        width: "100%",
+        margin: "0 auto",
+        padding: "0 20px",
+        boxSizing: "border-box"
+      }}
+    >
+      <label
+        style={{
+          display: "block",
+          fontSize: 14,
+          fontWeight: 600,
+          marginBottom: 8,
+          color: "#000"
+        }}
+      >
         Tracking Number
       </label>
-      <div style={{ display: "flex", gap: 8 }}>
+      <div className="flex-wrap" style={{ display: "flex", gap: 8 }}>
         <input
           placeholder="Enter your tracking number"
           value={trackingNumber}
           onChange={(e) => setTrackingNumber(e.target.value)}
           onKeyDown={(e) => e.key === "Enter" && handleTrack()}
           style={{
-            flex: 1, padding: "10px 14px", borderRadius: 4, border: "1px solid #ccc",
-            fontSize: 14, lineHeight: "20px", outline: "none", boxSizing: "border-box",
+            flex: 1,
+            padding: "10px 14px",
+            borderRadius: 4,
+            border: "1px solid #ccc",
+            fontSize: 14,
+            lineHeight: "20px",
+            outline: "none",
+            boxSizing: "border-box"
           }}
         />
         <button
+          className="w-full sm:w-auto"
           onClick={handleTrack}
           style={{
-            backgroundColor: "#007a5c", color: "#fff", border: "none", borderRadius: 4,
-            padding: "10px 28px", fontSize: 14, fontWeight: 600, cursor: "pointer",
-            lineHeight: "20px", whiteSpace: "nowrap",
+            backgroundColor: "#007a5c",
+            color: "#fff",
+            border: "none",
+            borderRadius: 4,
+            padding: "10px 28px",
+            fontSize: 14,
+            fontWeight: 600,
+            cursor: "pointer",
+            lineHeight: "20px",
+            whiteSpace: "nowrap"
           }}
         >
           Track

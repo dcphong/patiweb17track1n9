@@ -21,6 +21,7 @@ function HomeContent() {
   const searchParams = useSearchParams();
   const [trackingData, setTrackingData] = useState<TrackingData | null>(null);
   const [products, setProducts] = useState<ProductInfo[]>([]);
+  const [shopifyDomain, setShopifyDomain] = useState("");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [initialValue, setInitialValue] = useState("");
@@ -28,6 +29,8 @@ function HomeContent() {
   const doTrack = useCallback(async (trackingNumber: string) => {
     setLoading(true);
     setError(null);
+    setTrackingData(null);
+    setProducts([]);
     try {
       const res = await fetch("/api/track", {
         method: "POST",
@@ -41,6 +44,7 @@ function HomeContent() {
       }
       setTrackingData(json.data);
       setProducts(json.products || []);
+      setShopifyDomain(json.shopifyDomain || "");
     } catch {
       setError("An error occurred. Please try again later.");
     } finally {
@@ -82,7 +86,7 @@ function HomeContent() {
           <div style={{ marginTop: 40, color: "red", fontSize: 14, fontWeight: 500 }}>{error}</div>
         )}
 
-        {trackingData && !loading && <TrackingResult data={trackingData} products={products} />}
+        {trackingData && !loading && <TrackingResult data={trackingData} products={products} shopifyDomain={shopifyDomain} />}
       </main>
 
       <Footer />

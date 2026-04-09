@@ -144,45 +144,8 @@
 }
 
 /* ─── Mobile responsive ─── */
+@layer components {
 @media (max-width: 768px) {
-  /* Header: hide nav, center logo */
-  .header-nav {
-    display: none !important;
-  }
-  .header-logo {
-    position: static !important;
-    transform: none !important;
-  }
-  .header-root {
-    justify-content: center !important;
-    padding: 12px 16px !important;
-    gap: 0 !important;
-  }
-  .header-icons {
-    position: absolute !important;
-    right: 16px !important;
-  }
-
-  /* Progress bar: horizontal scroll with smaller nodes */
-  .tracking-progress {
-    overflow-x: auto;
-    -webkit-overflow-scrolling: touch;
-    padding-bottom: 8px;
-  }
-  .tracking-progress-inner {
-    min-width: 520px;
-  }
-  .tracking-progress-node {
-    min-width: 70px !important;
-    max-width: 100px !important;
-  }
-  .tracking-progress-label {
-    font-size: 11px !important;
-  }
-  .tracking-progress-date {
-    font-size: 10px !important;
-  }
-
   /* Timeline + Sidebar: stack vertically */
   .tracking-content {
     display: flex !important;
@@ -202,5 +165,78 @@
   .tracking-sidebar ul {
     padding: 0 !important;
   }
+
+  /* Timeline: full height on mobile */
+  .timeline-scroll {
+    max-height: none !important;
+  }
+
+  /* Upsell widget: single column */
+  .product-upsell-grid {
+    grid-template-columns: 1fr !important;
+  }
+
+  /* Hide floating widget on mobile */
+  .floating-widget-panel,
+  .floating-widget-btn {
+    display: none !important;
+  }
+}
+}
+
+/* Mobile drawer animation */
+@keyframes slideDrawerIn {
+  from { transform: translateX(-100%); }
+  to { transform: translateX(0); }
+}
+
+/* Header dropdown animation */
+@keyframes fadeSlideDown {
+  from { opacity: 0; transform: translateY(-4px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+/* Slide-in animation for upsell widgets only */
+@keyframes slideInLeft {
+  from { opacity: 0; transform: translateX(-30px); }
+  to { opacity: 1; transform: translateX(0); }
+}
+@keyframes slideInRight {
+  from { opacity: 0; transform: translateX(30px); }
+  to { opacity: 1; transform: translateX(0); }
+}
+.product-upsell {
+  animation: slideInRight 0.5s ease-out;
+}
+
+/* Floating widget */
+.floating-widget-panel {
+  animation: slideUpIn 0.3s ease-out;
+}
+.floating-widget-btn {
+  animation: slideUpIn 0.3s ease-out;
+}
+@keyframes slideUpIn {
+  from { opacity: 0; transform: translateY(20px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+.floating-widget-content {
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+}
+.floating-widget-content::-webkit-scrollbar {
+  display: none;
+}
+
+/* Timeline scrollbar */
+.timeline-scroll::-webkit-scrollbar {
+  width: 4px;
+}
+.timeline-scroll::-webkit-scrollbar-thumb {
+  background: transparent;
+  border-radius: 2px;
+}
+.timeline-scroll:hover::-webkit-scrollbar-thumb {
+  background: #ddd;
 }
 

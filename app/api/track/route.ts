@@ -46,7 +46,7 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: msg }, { status: 404 })
     }
 
-    return NextResponse.json({ data: accepted, products })
+    return NextResponse.json({ data: accepted, products, shopifyDomain: SHOPIFY_DOMAIN })
   } catch (e: any) {
     return NextResponse.json({ error: e.message || 'Failed to fetch tracking info' }, { status: 500 })
   }
@@ -56,6 +56,10 @@ interface ProductInfo {
   title: string
   image: string
   quantity: number
+  variant_id: number | null
+  unit_price: string
+  compare_at_price?: string
+  variant_title?: string
 }
 
 async function fetchProducts(trackingNumber: string): Promise<ProductInfo[]> {
@@ -65,7 +69,7 @@ async function fetchProducts(trackingNumber: string): Promise<ProductInfo[]> {
     // Find orders with this tracking number
     const { data: orders } = await supabase
       .from('shopify_orders')
-      .select('product_name, product_image, ordered_quantity')
+      .select('product_name, product_image, ordered_quantity, variant_id, unit_price')
       .contains('tracking_numbers', [trackingNumber])
 
     if (!orders?.length) return []
@@ -98,7 +102,29 @@ async function fetchProducts(trackingNumber: string): Promise<ProductInfo[]> {
         }
       }
 
-      products.push({ title, image, quantity: order.ordered_quantity || 1 })
+      // Fetch live variant data from Shopify (price, compare_at_price, availability)
+      let variantId = order.variant_id || null
+      let price = order.unit_price || ''
+      let compareAtPrice = ''
+      let variantTitle = ''
+      if (variantId && SHOPIFY_DOMAIN) {
+        try {
+          const vRes = await fetch(`https://${SHOPIFY_DOMAIN}/variants/${variantId}.json`)
+          if (vRes.ok) {
+            const vData = await vRes.json()
+            const v = vData.product_variant
+            if (v) {
+              price = v.price || price
+              compareAtPrice = v.compare_at_price || ''
+              variantTitle = v.title || ''
+            }
+          } else {
+            variantId = null  // variant deleted/unpublished
+          }
+        } catch { variantId = null }
+      }
+
+      products.push({ title, image, quantity: order.ordered_quantity || 1, variant_id: variantId, unit_price: price, compare_at_price: compareAtPrice, variant_title: variantTitle })
     }
 
     return products

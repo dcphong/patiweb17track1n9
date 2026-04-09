@@ -83,6 +83,10 @@ export interface ProductInfo {
   title: string
   image: string
   quantity: number
+  variant_id: number | null
+  unit_price: string
+  compare_at_price?: string
+  variant_title?: string
 }
 
 // Milestone key_stage mapping

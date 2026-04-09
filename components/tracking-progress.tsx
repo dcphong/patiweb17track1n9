@@ -1,5 +1,6 @@
 "use client";
 
+import { useState, useEffect } from "react";
 import type { Milestone } from "@/lib/types";
 import { STATUS_MAP } from "@/lib/types";
 
@@ -74,18 +75,29 @@ function formatDate(iso: string | null): string {
 export function TrackingProgress({ milestones, currentStatus }: { milestones: Milestone[]; currentStatus: string }) {
   const isException = currentStatus === "Exception" || currentStatus === "Undelivered" || currentStatus === "Alert";
 
-  // Build milestone lookup
+  // Build milestone lookup — also map 17TRACK stages to our display stages
   const milestoneMap = new Map<string, Milestone>();
   for (const m of milestones) {
     milestoneMap.set(m.key_stage, m);
+    // Map Departure/Arrival to InTransit
+    if ((m.key_stage === "Departure" || m.key_stage === "Arrival") && m.time_iso) {
+      const existing = milestoneMap.get("InTransit");
+      if (!existing?.time_iso) milestoneMap.set("InTransit", m);
+    }
   }
+
+  // Use currentStatus to infer reached stage when milestones are sparse
+  const STATUS_TO_STAGE_IDX: Record<string, number> = {
+    InfoReceived: 0, PickedUp: 1, InTransit: 2, OutForDelivery: 3, Delivered: 4,
+    AvailableForPickup: 3, Expired: 2, Undelivered: 3, Alert: 2,
+  };
 
   let stages = [...STAGE_ORDER];
   if (isException) {
     stages = [...stages, "Exception"];
   }
 
-  // Find the highest reached stage index — all stages before it are also reached
+  // Find highest reached: max of milestone-based and status-based
   let highestReachedIdx = -1;
   for (let i = stages.length - 1; i >= 0; i--) {
     const m = milestoneMap.get(stages[i]);
@@ -94,42 +106,117 @@ export function TrackingProgress({ milestones, currentStatus }: { milestones: Mi
       break;
     }
   }
+  // Also check currentStatus — if API says InTransit but no milestone, still mark it
+  const statusIdx = STATUS_TO_STAGE_IDX[currentStatus] ?? -1;
+  if (statusIdx > highestReachedIdx) highestReachedIdx = statusIdx;
 
-  return (
-    <div className="tracking-progress" style={{ width: "100%", marginBottom: 20 }}>
-      <div className="tracking-progress-inner" style={{ display: "flex", flexDirection: "row", alignItems: "flex-start", justifyContent: "space-between", margin: "20px auto", width: "100%" }}>
-        {stages.map((stage, idx) => {
-          const isLast = idx === stages.length - 1;
-          const m = milestoneMap.get(stage);
-          const reached = idx <= highestReachedIdx;
-          const nextReached = !isLast && (idx + 1) <= highestReachedIdx;
-          const color = reached
-            ? (stage === "Exception" ? "#e53935" : "#008000")
-            : "#CDCDCD";
+  const [isMobile, setIsMobile] = useState(false);
+  const [expanded, setExpanded] = useState(false);
+  useEffect(() => {
+    const check = () => setIsMobile(window.innerWidth <= 768);
+    check();
+    window.addEventListener("resize", check);
+    return () => window.removeEventListener("resize", check);
+  }, []);
 
-          return (
-            <div key={stage} style={{ display: "flex", alignItems: "flex-start", flex: isLast ? "0 0 auto" : 1 }}>
-              <div className="tracking-progress-node" style={{ display: "flex", flexDirection: "column", alignItems: "center", minWidth: 100, maxWidth: 160 }}>
-                <ProgressIcon stage={stage} color={color} />
-                <span className="tracking-progress-label" style={{ fontSize: 14, fontWeight: 550, lineHeight: 1.25, color, marginTop: 4, textAlign: "center", whiteSpace: "nowrap" }}>
-                  {STAGE_LABELS[stage] || STATUS_MAP[stage] || stage}
-                </span>
-                {m?.time_iso && (
-                  <span className="tracking-progress-date" style={{ fontSize: 13, marginTop: 4, color: "#707070", textAlign: "center", maxWidth: 130, display: "block", lineHeight: 1.4 }}>
-                    {formatDate(m.time_iso)}
-                  </span>
-                )}
+  const stageData = stages.map((stage, idx) => {
+    const isLast = idx === stages.length - 1;
+    const m = milestoneMap.get(stage);
+    const reached = idx <= highestReachedIdx;
+    const nextReached = !isLast && (idx + 1) <= highestReachedIdx;
+    const color = reached ? (stage === "Exception" ? "#e53935" : "#008000") : "#CDCDCD";
+    return { stage, isLast, m, reached, nextReached, color };
+  });
+
+  // Find the latest reached stage for collapsed view
+  const latestStage = highestReachedIdx >= 0 ? stageData[highestReachedIdx] : stageData[0];
+  const latestLabel = STAGE_LABELS[latestStage.stage] || STATUS_MAP[latestStage.stage] || latestStage.stage;
+  const latestDate = latestStage.m?.time_iso ? formatDate(latestStage.m.time_iso) : "";
+
+  // ── Mobile: collapsible card ──
+  if (isMobile) {
+    return (
+      <div style={{ width: "100%", marginBottom: 20 }}>
+        <div
+          onClick={() => setExpanded(!expanded)}
+          style={{
+            border: "1px solid #e5e5e5", borderRadius: 12, padding: "16px 20px",
+            cursor: "pointer", background: "#fff",
+          }}
+        >
+          {/* Collapsed: show latest status */}
+          <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between" }}>
+            <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
+              <ProgressIcon stage={latestStage.stage} color={latestStage.color} />
+              <div>
+                <div style={{ fontSize: 16, fontWeight: 600, color: latestStage.color }}>{latestLabel}</div>
+                {latestDate && <div style={{ fontSize: 12, color: "#999", marginTop: 2 }}>{latestDate}</div>}
               </div>
+            </div>
+            <svg
+              width="16" height="16" viewBox="0 0 16 16" fill="none"
+              style={{ transform: expanded ? "rotate(180deg)" : "rotate(0deg)", transition: "transform 0.2s", flexShrink: 0 }}
+            >
+              <path d="M4 6l4 4 4-4" stroke="#999" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
+            </svg>
+          </div>
 
-              {!isLast && (
-                <div style={{
-                  flex: 1, margin: "12px 4px 0", height: 5, borderRadius: 8,
-                  background: reached && nextReached ? "#008000" : reached ? "linear-gradient(to right, #008000, #efefef)" : "#efefef",
-                }} />
+          {/* Expanded: full vertical timeline */}
+          {expanded && (
+            <div style={{ marginTop: 20, paddingTop: 16, borderTop: "1px solid #f0f0f0" }}>
+              {stageData.slice().reverse().map(({ stage, isLast: _, m, reached, color }, idx) => {
+                const isLastItem = idx === stageData.length - 1;
+                return (
+                  <div key={stage} style={{ display: "flex", alignItems: "stretch" }}>
+                    <div style={{ display: "flex", flexDirection: "column", alignItems: "center", width: 28, flexShrink: 0 }}>
+                      <ProgressIcon stage={stage} color={color} />
+                      {!isLastItem && (
+                        <div style={{ width: 3, flex: 1, minHeight: 20, background: reached ? "#008000" : "#efefef", borderRadius: 2 }} />
+                      )}
+                    </div>
+                    <div style={{ marginLeft: 12, paddingBottom: isLastItem ? 0 : 14 }}>
+                      <span style={{ fontSize: 14, fontWeight: 600, color, lineHeight: 1.3 }}>
+                        {STAGE_LABELS[stage] || STATUS_MAP[stage] || stage}
+                      </span>
+                      {m?.time_iso && (
+                        <div style={{ fontSize: 12, color: "#999", marginTop: 2 }}>{formatDate(m.time_iso)}</div>
+                      )}
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+          )}
+        </div>
+      </div>
+    );
+  }
+
+  // ── Desktop: horizontal layout ──
+  return (
+    <div style={{ width: "100%", marginBottom: 20 }}>
+      <div style={{ display: "flex", flexDirection: "row", alignItems: "flex-start", justifyContent: "space-between", margin: "20px auto", width: "100%" }}>
+        {stageData.map(({ stage, isLast, m, reached, nextReached, color }) => (
+          <div key={stage} style={{ display: "flex", alignItems: "flex-start", flex: isLast ? "0 0 auto" : 1 }}>
+            <div style={{ display: "flex", flexDirection: "column", alignItems: "center", minWidth: 100, maxWidth: 160 }}>
+              <ProgressIcon stage={stage} color={color} />
+              <span style={{ fontSize: 14, fontWeight: 550, lineHeight: 1.25, color, marginTop: 4, textAlign: "center", whiteSpace: "nowrap" }}>
+                {STAGE_LABELS[stage] || STATUS_MAP[stage] || stage}
+              </span>
+              {m?.time_iso && (
+                <span style={{ fontSize: 13, marginTop: 4, color: "#707070", textAlign: "center", maxWidth: 130, display: "block", lineHeight: 1.4 }}>
+                  {formatDate(m.time_iso)}
+                </span>
               )}
             </div>
-          );
-        })}
+            {!isLast && (
+              <div style={{
+                flex: 1, margin: "12px 4px 0", height: 5, borderRadius: 8,
+                background: reached && nextReached ? "#008000" : reached ? "linear-gradient(to right, #008000, #efefef)" : "#efefef",
+              }} />
+            )}
+          </div>
+        ))}
       </div>
     </div>
   );

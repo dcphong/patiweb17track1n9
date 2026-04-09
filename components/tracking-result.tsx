@@ -4,12 +4,24 @@ import type { TrackingData, ProductInfo } from "@/lib/types";
 import { TrackingProgress } from "./tracking-progress";
 import { TrackingTimeline } from "./tracking-timeline";
 import { TrackingSidebar } from "./tracking-sidebar";
+import { FloatingWidget } from "./floating-widget";
 
-export function TrackingResult({ data, products }: { data: TrackingData; products?: ProductInfo[] }) {
+
+function isChinaCarrier(carrier: any): boolean {
+  if (!carrier) return false;
+  return carrier.country === "CN";
+}
+
+export function TrackingResult({ data, products, shopifyDomain }: { data: TrackingData; products?: ProductInfo[]; shopifyDomain?: string }) {
   const info = data.track_info;
   const status = info.latest_status.status;
-  const events = info.tracking.providers?.[0]?.events || [];
+  const rawEvents = info.tracking.providers?.[0]?.events || [];
   const carrier = info.tracking.providers?.[0]?.provider;
+
+  const events = rawEvents;
+
+  // Hide carrier if China-based
+  const showCarrier = !isChinaCarrier(carrier);
 
   return (
     <div style={{ maxWidth: 1200, margin: "0 auto", width: "100%" }}>
@@ -22,12 +34,14 @@ export function TrackingResult({ data, products }: { data: TrackingData; product
           <TrackingTimeline events={events} statusLabel={status} />
           <TrackingSidebar
             trackingNumber={data.number}
-            carrierName={carrier?.name || ""}
-            carrierHomepage={carrier?.homepage || ""}
+            carrierName={showCarrier ? (carrier?.name || "") : ""}
+            carrierHomepage={showCarrier ? (carrier?.homepage || "") : ""}
             products={products || []}
           />
         </div>
       </div>
+
+      <FloatingWidget products={products || []} shopifyDomain={shopifyDomain || ""} />
     </div>
   );
 }
