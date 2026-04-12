@@ -11,6 +11,7 @@ const supabase = SUPABASE_URL && SUPABASE_KEY ? createClient(SUPABASE_URL, SUPAB
 
 const ALLOWED_ORIGINS = [
   `https://${SHOPIFY_DOMAIN}`,
+  'https://wellnessnest.co',
   'http://localhost:3000',
 ]
 
